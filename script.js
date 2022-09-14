@@ -10,6 +10,18 @@ const account1 = {
   movements: [200, 450, -400, 3000, -650, -130, 70, 1300],
   interestRate: 1.2, // %
   pin: 1111,
+  movementsDates: [
+    '2019-11-18T21:31:17.178Z',
+    '2019-12-23T07:42:02.383Z',
+    '2020-01-28T09:15:04.904Z',
+    '2020-04-01T10:17:24.185Z',
+    '2020-05-08T14:11:59.604Z',
+    '2020-05-27T17:01:17.194Z',
+    '2022-09-08T23:36:17.929Z',
+    '2022-09-12T10:51:36.790Z',
+  ],
+  currency: 'EUR',
+  locale: 'pt-PT', // de-DE
 };
 
 const account2 = {
@@ -17,6 +29,18 @@ const account2 = {
   movements: [5000, 3400, -150, -790, -3210, -1000, 8500, -30],
   interestRate: 1.5,
   pin: 2222,
+  movementsDates: [
+    '2019-11-01T13:15:33.035Z',
+    '2019-11-30T09:48:16.867Z',
+    '2019-12-25T06:04:23.907Z',
+    '2020-01-25T14:18:46.235Z',
+    '2020-02-05T16:33:06.386Z',
+    '2020-04-10T14:43:26.374Z',
+    '2020-06-25T18:49:59.371Z',
+    '2020-07-26T12:01:20.894Z',
+  ],
+  currency: 'USD',
+  locale: 'en-US',
 };
 
 const account3 = {
@@ -24,6 +48,18 @@ const account3 = {
   movements: [200, -200, 340, -300, -20, 50, 400, -460],
   interestRate: 0.7,
   pin: 3333,
+  movementsDates: [
+    '2019-11-01T13:15:33.035Z',
+    '2019-11-30T09:48:16.867Z',
+    '2019-12-25T06:04:23.907Z',
+    '2020-01-25T14:18:46.235Z',
+    '2020-02-05T16:33:06.386Z',
+    '2020-04-10T14:43:26.374Z',
+    '2020-06-25T18:49:59.371Z',
+    '2020-07-26T12:01:20.894Z',
+  ],
+  currency: 'USD',
+  locale: 'pt-PT',
 };
 
 const account4 = {
@@ -31,6 +67,18 @@ const account4 = {
   movements: [430, 1000, 700, 50, 90],
   interestRate: 1,
   pin: 4444,
+  movementsDates: [
+    '2019-11-01T13:15:33.035Z',
+    '2019-11-30T09:48:16.867Z',
+    '2019-12-25T06:04:23.907Z',
+    '2020-01-25T14:18:46.235Z',
+    '2020-02-05T16:33:06.386Z',
+    '2020-04-10T14:43:26.374Z',
+    '2020-06-25T18:49:59.371Z',
+    '2020-07-26T12:01:20.894Z',
+  ],
+  currency: 'GBP',
+  locale: 'en-US',
 };
 
 const accounts = [account1, account2, account3, account4];
@@ -75,94 +123,102 @@ const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
 
 /////////////////////////////////////////////////
 
+//форматирование даты
+const formatMovementDate = function (date, locale) {
+  const calcDisplayPassed = (date1, date2) => Math.round(Math.abs((date2 - date1) / (1000 * 60 * 60 * 24)))
+  const passedDays = calcDisplayPassed(new Date(), date)
+  if (passedDays === 0) return `Today`
+  if (passedDays === 1) return `Yeasterday`
+  if (passedDays <= 7) return `${passedDays} days ago`
+  else {
+    return new Intl.DateTimeFormat(locale).format(date)
+  }
+}
 
-//my code 
+//форматирование валюты
+const formatCurr = function (value, locale, currency) {
+  return new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency: currency
+  }).format(value)
+}
 
-const displayMovements = function (movements) {
+// вывод тразакций
+const displayMovements = function (acc, sort = false) {
   containerMovements.innerHTML = ''
-  movements.forEach(function (mov, i) {
+
+  const movs = sort ? acc.movements.slice().sort((a, b) => a - b) : acc.movements
+
+  movs.forEach(function (mov, i) {
     const type = mov > 0 ? 'deposit' : 'withdrawal'
+    const date = new Date(acc.movementsDates[i])
+    const displayDate = formatMovementDate(date, acc.locale)
+    const formattedMov = formatCurr(mov, acc.locale, acc.currency)
+
     const html = ` <div class="movements__row">
     <div class="movements__type movements__type--${type}">${i + 1} ${type}</div>
-    <div class="movements__date"></div>
-    <div class="movements__value">${mov}€</div>
+    <div class="movements__date">${displayDate}</div>
+    <div class="movements__value">${formattedMov}</div>
   </div>`
     containerMovements.insertAdjacentHTML('afterbegin', html)
   })
 
 }
 
-
-
-const rwj = 'ray william johnson jackson peter as qw'
-const createUsernames = function (accs) {
-  accs.forEach(function (acc) {
-    acc.userName = acc.owner.toLowerCase().split(' ').map(item => item[0]).join('');
-  })
-}
-
-createUsernames(accounts)
-console.log(accounts)
-
-
-// работает но нужна стрелочная
-// const calcDisplayBalance = function (movements) {
-//   const balance = movements.reduce(function (acc, item) {
-//    return acc += item
-
-
-//   }, 0)
-//   console.log(balance)
-//   labelBalance.textContent = balance
-// }
-
-
+// расчет баланса
 const calcDisplayBalance = function (acc) {
   acc.balance = acc.movements.reduce((acc, item) => acc += item, 0)
-  labelBalance.textContent = `${acc.balance} EUR`
+
+  labelBalance.textContent = formatCurr(acc.balance, acc.locale, acc.currency)
 }
 
-
-
-const maxMonumets = movements.reduce((acc, item) => item > acc ? acc = item : acc, movements[0])
-console.log(maxMonumets + ' was max movement')
-
-
+//  три нижних поля
 const calcDisplaySummary = function (acc) {
 
-  const incomes = acc.movements.filter(mov => mov > 0).reduce((acc, item) => acc += item)
-  labelSumIn.textContent = incomes
+  const incomes = acc.movements.filter(mov => mov > 0).reduce((acc, item) => acc += item, 0)
+  labelSumIn.textContent = formatCurr(incomes, acc.locale, acc.currency)
 
-  const out = acc.movements.filter(mov => mov < 0).reduce((acc, item) => acc += item)
-  labelSumOut.textContent = out
+  const out = acc.movements.filter(mov => mov < 0).reduce((acc, item) => acc += item, 0)
+  labelSumOut.textContent = formatCurr(Math.abs(out), acc.locate, acc.currency)
 
   const interests = acc.movements.filter(mov => mov > 0).map(deposites => deposites * acc.interestRate / 100).filter(int => { return int > 1 }).reduce((acc, summ) => acc += summ, 0)
-  labelSumInterest.textContent = interests
-
-
-
+  labelSumInterest.textContent = formatCurr(interests, acc.locale, acc.currency)
 }
 
-
+// обновление данных
 const updateUI = function (acc) {
-  displayMovements(currentAccount.movements)
-  calcDisplayBalance(currentAccount)
-  calcDisplaySummary(currentAccount)
+  displayMovements(acc)
+  calcDisplayBalance(acc)
+  calcDisplaySummary(acc)
 }
 
+// таймер 
+const startLogoutTimer = function () {
+  const tick = function () {
+    const min = String(Math.trunc(time / 60)).padStart(2, 0)
+    const sec = String(Math.trunc(time % 60)).padStart(2, 0)
 
+    labelTimer.textContent = `${min}.${sec}`
 
+    if (time === 0) {
+      containerApp.style.opacity = 0
+      labelWelcome.textContent = 'Log in to get started'
+      clearTimeout(timer)
+    }
+    time--
+  }
+  let time = 120
+  const timer = setInterval(tick, 1000)
+  tick()
+  return timer
+}
 
-
-let currentAccount
-
+let currentAccount, timer
 
 // ЛОГИН 
 btnLogin.addEventListener('click', function (e) {
   e.preventDefault()
-
   currentAccount = accounts.find(item => item.userName === inputLoginUsername.value)
-
 
   if (currentAccount?.pin === Number(inputLoginPin.value)) {
     console.log('ololo')
@@ -170,16 +226,26 @@ btnLogin.addEventListener('click', function (e) {
 
     containerApp.style.opacity = 100
 
+    const now = new Date()
+
+    const options = {
+      hour: 'numeric',
+      minute: 'numeric',
+      day: 'numeric',
+      month: 'numeric',
+      year: 'numeric'
+    }
+    labelDate.textContent = new Intl.DateTimeFormat(currentAccount.locale, options).format(now)
+
     inputLoginUsername.value = inputLoginPin.value = ''
     inputLoginPin.blur()
-
+    if (timer) clearInterval(timer)
+    timer = startLogoutTimer()
     updateUI(currentAccount)
-
   }
-
 })
-// TRANSACTIONS
 
+// TRANSACTIONS
 btnTransfer.addEventListener('click', function (e) {
   e.preventDefault()
   const amount = Number(inputTransferAmount.value)
@@ -192,94 +258,48 @@ btnTransfer.addEventListener('click', function (e) {
     console.log('success')
     currentAccount.movements.push(-amount)
     recieverAcc.movements.push(amount)
+    currentAccount.movementsDates.push(new Date().toISOString())
+    recieverAcc.movementsDates.push(new Date().toISOString())
     updateUI(currentAccount)
+    clearInterval(timer)
+    timer = startLogoutTimer()
   }
-
 })
 
+// удаление аккаунта
 btnClose.addEventListener('click', function (e) {
   e.preventDefault()
-  if (inputCloseUsername.value === currentAccount.userName && currentAccount.pin ===Number(inputClosePin.value)) {
+  if (inputCloseUsername.value === currentAccount.userName && currentAccount.pin === Number(inputClosePin.value)) {
     const index = accounts.find(acc => acc.username === currentAccount.userName)
     console.log('delete')
     accounts.splice(index, 1)
     containerApp.style.opacity = 0
     labelWelcome.textContent = `Log in to get started`
   }
-  inputCloseUsername.value = inputClosePin.value =''
-  
-
+  inputCloseUsername.value = inputClosePin.value = ''
 })
 
-
-btnLoan.addEventListener('click', function(e){
+// кнопка запроса денег
+btnLoan.addEventListener('click', function (e) {
   e.preventDefault()
-  const amount = Number(inputLoanAmount.value)
+  const amount = Math.floor(inputLoanAmount.value)
 
-  if(amount >0 && currentAccount.movements.some(mov => mov >= amount *0.1) ){
-    currentAccount.movements.push(amount)
-    updateUI(currentAccount)
+  if (amount > 0 && currentAccount.movements.some(mov => mov >= amount * 0.1)) {
+    setTimeout(function () {
+      currentAccount.movements.push(amount)
+      currentAccount.movementsDates.push(new Date().toISOString())
+      updateUI(currentAccount)
+      clearInterval(timer)
+      timer = startLogoutTimer()
+    }, 2500)
   }
-  inputLoanAmount.value =''
+  inputLoanAmount.value = ''
 })
 
-
-
-
-
-
-// formula age< 2 => x2 else 16+ age x4 aa
-
-
-// coding challenges
-// TEST DATA 1: Julia's data [3, 5, 2, 12, 7], Kate 's
-// da ta 14,1, 15, 8, 3]
-// TEST DATA 2: Julia's data [9, 16, 6, 8, 3], Kate's
-// data [10, 5, 6, 1, 4]
-
-const julia = [3, 5, 2, 12, 7]
-const kate = [4, 1, 15, 8, 3]
-
-
-
-// function age(arr, arr2){
-//   const newJulia = julia.slice()
-//   const newNewJulia = newJulia.splice(-2)
-//   console.log(newJulia)
-
-//   const arrBoth = newJulia.concat(arr2)
-//   console.log(arrBoth)
-//   arrBoth.forEach(function(el){
-//    const newAge =  el > 3 ? 'adult': 'puppy'
-//    console.log(`dog nubber ${el+1} is ${newAge}`)
-//   })
-// } 
-
-// age(julia, kate)
-
-// function ageToHuman(arr){
-//   const humanAges = arr.map(function(dog){
-//     if (dog <=2){
-//       dog = dog*2
-//       console.log(dog)
-//     }
-//     else{
-//       dog = 16+dog*4
-//       console.log(dog)
-//     }
-//     return dog
-//   })
-//   console.log(humanAges)
-// }
-// ageToHuman(julia)
-
-
-
-// function averageHumanAge(arr){
-//   const humanAges = arr.map(dog => dog<=2 ? dog*2: dog = 16+dog*4)
-//   .filter(items => items>=18)
-//   .reduce((acc,item) => acc+=item,0)
-//   return  humanAges/arr.length
-// }
-
-// console.log('average dogs age = ' + averageHumanAge(julia))
+// кнопка сортировки
+let sorted = false
+btnSort.addEventListener('click', function (e) {
+  e.preventDefault
+  displayMovements(currentAccount.movements, !sorted)
+  sorted = !sorted
+})
