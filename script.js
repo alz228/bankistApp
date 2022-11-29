@@ -4,7 +4,6 @@
 /////////////////////////////////////////////////
 // BANKIST APP
 
-// Data
 const account1 = {
   owner: 'Jonas Schmedtmann',
   movements: [200, 450, -400, 3000, -650, -130, 70, 1300],
@@ -21,7 +20,7 @@ const account1 = {
     '2022-09-12T10:51:36.790Z',
   ],
   currency: 'EUR',
-  locale: 'pt-PT', // de-DE
+  locale: 'pt-PT', 
 };
 
 const account2 = {
@@ -83,7 +82,7 @@ const account4 = {
 
 const accounts = [account1, account2, account3, account4];
 
-// Elements
+// элементы 
 const labelWelcome = document.querySelector('.welcome');
 const labelDate = document.querySelector('.date');
 const labelBalance = document.querySelector('.balance__value');
@@ -110,8 +109,6 @@ const inputCloseUsername = document.querySelector('.form__input--user');
 const inputClosePin = document.querySelector('.form__input--pin');
 
 /////////////////////////////////////////////////
-/////////////////////////////////////////////////
-// LECTURES
 
 const currencies = new Map([
   ['USD', 'United States dollar'],
@@ -126,11 +123,13 @@ const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
 //форматирование даты
 const formatMovementDate = function (date, locale) {
   const calcDisplayPassed = (date1, date2) => Math.round(Math.abs((date2 - date1) / (1000 * 60 * 60 * 24)))
+
   const passedDays = calcDisplayPassed(new Date(), date)
   if (passedDays === 0) return `Today`
   if (passedDays === 1) return `Yeasterday`
   if (passedDays <= 7) return `${passedDays} days ago`
   else {
+
     return new Intl.DateTimeFormat(locale).format(date)
   }
 }
@@ -141,8 +140,8 @@ const formatCurr = function (value, locale, currency) {
     style: 'currency',
     currency: currency
   }).format(value)
-}
 
+}
 // вывод тразакций
 const displayMovements = function (acc, sort = false) {
   containerMovements.innerHTML = ''
@@ -155,6 +154,7 @@ const displayMovements = function (acc, sort = false) {
     const displayDate = formatMovementDate(date, acc.locale)
     const formattedMov = formatCurr(mov, acc.locale, acc.currency)
 
+
     const html = ` <div class="movements__row">
     <div class="movements__type movements__type--${type}">${i + 1} ${type}</div>
     <div class="movements__date">${displayDate}</div>
@@ -162,8 +162,16 @@ const displayMovements = function (acc, sort = false) {
   </div>`
     containerMovements.insertAdjacentHTML('afterbegin', html)
   })
-
 }
+
+// короткие никнеймы 
+const createUsernames = function (accs) {
+  accs.forEach(function (acc) {
+    acc.userName = acc.owner.toLowerCase().split(' ').map(item => item[0]).join('');
+  })
+}
+
+createUsernames(accounts)
 
 // расчет баланса
 const calcDisplayBalance = function (acc) {
@@ -171,6 +179,7 @@ const calcDisplayBalance = function (acc) {
 
   labelBalance.textContent = formatCurr(acc.balance, acc.locale, acc.currency)
 }
+
 
 //  три нижних поля
 const calcDisplaySummary = function (acc) {
@@ -245,7 +254,7 @@ btnLogin.addEventListener('click', function (e) {
   }
 })
 
-// TRANSACTIONS
+// транзакции 
 btnTransfer.addEventListener('click', function (e) {
   e.preventDefault()
   const amount = Number(inputTransferAmount.value)
